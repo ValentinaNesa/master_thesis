@@ -19,33 +19,23 @@ def convert(string):  # function that converts 'lists' from the bash input (stri
 
 
 directory_output = '../../output/impact_ch/'  # where to save to output
-directory_hazard = sys.argv[1]  # first input from the bash script, which is the directory to the temperature files.
+directory_hazard = '../../input_data/hazard/CH2018'  # first input from the bash script, which is the directory to the temperature files.
 
-n_mc = literal_eval(sys.argv[2])  # number of Monte Carlo runs
+n_mc = literal_eval('1')  # number of Monte Carlo runs
 
 # check the third input, which determines if the input should be calculated for Switzerland,
 # all cantons indepentently or for one specific canton:
-if sys.argv[3] == 'CH':
-    kantons = [None]  # the None is put into a list, as we further loop through the cantons given
-else:
-    kantons = convert(sys.argv[3])
-    directory_output = '../../output/impact_cantons/'  # in case a canton is given, the output is saved to the file
-    # impact_cantons. However if an adaptation measure is specified later on, the output goes to impact_adaptation
-    # even if considering a specific canton
+kantons = [None]  # the None is put into a list, as we further loop through the cantons given
 
 # get fourth input, the years for which to compute the impact
-years_list = [int(i) for i in convert(sys.argv[4])]
+years_list = [2050]
 
 # get fifth input, the scenarios for which to compute the impact
-scenarios = convert(sys.argv[5])
+scenarios = ['RCP45']
 
 # check if any branches where given, or if the impact for all categories should be computed
-if sys.argv[6] == '0':
-    branch = None
-    branches_str = 'all_branches'
-else:
-    branch = convert(sys.argv[6])
-    branches_str = "_".join(branch)  # string to name the file later on
+branch = None
+branches_str = 'all_branches'
 
 # set default for adaptation measures:
 adaptation_str = ''
@@ -55,29 +45,8 @@ sun_protection = False
 
 # check if any adaptation measures where given:
 
-if literal_eval(sys.argv[7]) != 0:
-    adaptation = convert(sys.argv[7])
-    directory_output = '../../output/impact_adaptation/'
-    adaptation = list(adaptation)
-    adaptation_str = 'adaptation_measures'
-    for a_ in adaptation:
-        if a_ == '1':
-            sun_protection = True
-            adaptation_str = "".join([adaptation_str, a_, '_'])  # string to name the file
-
-        if a_ == '2':
-            efficient_buildings = True
-            adaptation_str = "".join([adaptation_str, a_, '_'])
-        if a_ == '3':
-            working_hours = [int(w_) for w_ in convert(sys.argv[8])]
-            adaptation_str = "".join([adaptation_str, a_, '_', str(working_hours[0]), 'h', str(working_hours[1]),
-                                      'h', str(working_hours[2]), 'h', str(working_hours[3]), 'h', '_'])
-
 # determine if the median damage matrix should be saved as output
-if sys.argv[8] == '0':
-    save_median_mat = False
-else:
-    save_median_mat = True
+save_median_mat = True
 
 # in this base model run, all uncertainties are taken into account.
 # This is not the case in the sensibility testing code where all are taken one by one.
