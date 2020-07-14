@@ -142,3 +142,4 @@ dmypy.json
 .DS_Store
 climada_library/
 input_data/hazard/CH2018
+input_data/exposures/
