@@ -13,7 +13,6 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
     """write the Exposures:
 
                     Parameters:
-
                         kanton (str or None): Name of canton. Default: None (all of Switzerland)
                         age_group (str or None): specific age group, as given in the "GIS_Data_code" of the age_categories.csv file. Default: None
                         epsg_output (int): EPSG code of the output. Default: 4326.
@@ -72,7 +71,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
         population_sum_intensity['longitude'] = np.asarray(population_loc_intensity['E_KOORD']).flatten()
         population_sum_intensity['latitude'] = np.asarray(population_loc_intensity['N_KOORD']).flatten()
         population_sum_intensity['value'] = np.asarray(
-            population_loc_intensity[population_loc_intensity.columns[8:]].sum(axis=1))
+            population_loc_intensity[population_loc_intensity.columns[2:]].sum(axis=1)) # to sum over the rows
         n_exp = len(population_sum_intensity['value'])
 
         if kanton:  # test if a canton was specified, in that case
@@ -93,15 +92,15 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
 
         else:  # normal case, for entire Switzerland
 
-            population_sum_intensity = Exposures(workers_sum_intensity)
+            population_sum_intensity = Exposures(population_sum_intensity)
             population_sum_intensity.set_geometry_points()
             population_sum_intensity.value_unit = 'Number of people'
             population_sum_intensity['if_heat'] = np.full((n_exp), if_ref[name], dtype=int)
-            population_sum_intensity.crs = {'init': ''.join(['epsg:', str(epsg_data)])}
+            population_sum_intensity.crs = {'init': ''.join(['epsg:', str(epsg_data)])} # Coordinate Reference Systems
             population_sum_intensity.check()
             population_sum_intensity.fillna(0)
             population_sum_intensity.to_crs(epsg=epsg_output, inplace=True)
-        name = name
-        exposures[name] = population_sum_intensity
+        name_category = name
+        exposures[name_category] = population_sum_intensity
 
     return exposures

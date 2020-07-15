@@ -143,3 +143,4 @@ dmypy.json
 climada_library/
 input_data/hazard/CH2018
 input_data/exposures/
+input_data/impact_functions/
