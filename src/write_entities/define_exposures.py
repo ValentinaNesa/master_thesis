@@ -3,11 +3,10 @@ import pandas as pd
 from pandas import DataFrame
 
 from climada.entity import Exposures
-from shapefile_masks import vector_shapefile_mask
+#from shapefile_masks import vector_shapefile_mask
 
 
 # In[ ]:
-
 
 def call_exposures(kanton=None, age_group=None, epsg_output=4326):
     """write the Exposures:
@@ -23,10 +22,13 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
 
     directory = '../../input_data/exposures/'
     exposures = {}  # dictionary of the exposures, where we will further put each category of Exposure as a key
+    
     population_info = pd.read_csv(
         ''.join([directory, 'age_categories.csv']))  # file containing the information on the age categories
+    
     population_loc = pd.read_csv(''.join([directory, 'STATPOP2018.csv']))
     # file containing the geographical location of the population by age group
+    
     epsg_data = 2056  # espg of the population_loc data
 
     # get subset of the population data for each category
@@ -100,6 +102,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
             population_sum_intensity.check()
             population_sum_intensity.fillna(0)
             population_sum_intensity.to_crs(epsg=epsg_output, inplace=True)
+        
         name_category = name
         exposures[name_category] = population_sum_intensity
 
