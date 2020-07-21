@@ -2,11 +2,14 @@ import numpy as np
 import xarray as xr
 import random
 import glob
-from pandas import DataFrame, Timestamp
+from pandas import Timestamp
 from scipy import sparse
-from shapefile_masks import add_shape_coord_from_data_array
 
 from climada.hazard import Hazard
+
+import sys
+sys.path.append('../../src/util/')
+from shapefile_masks import add_shape_coord_from_data_array
 
 np.warnings.filterwarnings('ignore')
 
@@ -15,10 +18,10 @@ np.warnings.filterwarnings('ignore')
 
 
 def call_hazard(directory_hazard, scenario, year, uncertainty_variable='all', kanton=None):
-    """Compute heat hazard for the ch2018 data, considered as any day where the T_max is higher than 22 degrees celsius
+    """Compute heat hazard for the CH2018 data, considered as any day where the T_max is higher than 22 degrees celsius
 
             Parameters:
-                directory_hazard (str): directory to a folder containing one tasmax and one tasmin folder with all the
+                directory_hazard (str): directory to a folder containing one tasmax (and one tasmin) folder with all the
                                         data files
                 scenario (str): scenario for which to compute the hazards
                 year(str): year for which to compute the hazards
@@ -65,32 +68,29 @@ def call_hazard(directory_hazard, scenario, year, uncertainty_variable='all', ka
     day = 0  # start at day 0
     dates = np.zeros(number_days)
 
-    # create an array with the maximum of the day
+    # create an array with the maximum temperature of the day
 
     for t in range(number_days):  # loop over the number of days in a year
 
         dates[t] = Timestamp(tasmax.time.values[day]).toordinal()
-
-        if day < (len(tasmax.tasmax.values) - 1):  # if day is not the last day of the dataset
-            next_day = day + 1  # next day
-        else:
-            next_day = day  # when the last day of the year is reached, we just consider that the next day
+        temp[t,:,:] = (tasmax.tasmax.values[day])
             
         day = day + 1
 
-    nevents = [len(tasmax)]  # number of events
-    events = [range(len(tasmax))]  # number of each event
+    nevents = [len(temp)]  # number of events
+    events = [range(len(temp))]  # number of each event
     event_dates = [dates]
+    temp_data = [temp]
 
     hazards = {}
 
-    for w_ in range(len(tasmax)):  # write down the events in Hazard class
+    for w_ in range(len(temp_data)):  # write down the events in Hazard class
 
         grid_x, grid_y = np.meshgrid(tasmax.lon.values, tasmax.lat.values)
         heat = Hazard('heat')
         heat.centroids.set_lat_lon(grid_y.flatten(), grid_x.flatten(), crs={'init': 'epsg:4326'})
         heat.units = 'degrees C'
-        heat_data = tasmax[w_]
+        heat_data = temp_data[w_]
         heat_data[np.isnan(heat_data)] = 0.  # replace NAs by 0
         heat.intensity = sparse.csr_matrix(heat_data.reshape(nevents[w_], nlons * nlats))
         heat.event_id = np.array(events[w_])
