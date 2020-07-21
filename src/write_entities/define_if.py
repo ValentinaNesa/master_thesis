@@ -7,7 +7,7 @@ from climada.entity import ImpactFunc, ImpactFuncSet
 #  define the function to fit the points:
 def polynomial(x, a, b, c, d):
     y = a*x**3 + b*x**2 + c*x + d 
-    return (y)
+    return y
 
 
 # define a truncated normal distribution, to not have extreme outliers
@@ -20,7 +20,7 @@ def impact_functions_random(file, category, error=True):
     """get curve for the impact function:
 
                        Parameters:
-                           file (str): directory to file of the impact functions
+                           file (str): directory to file with the data
                            category (str): age category
                            error (bool): rather to give best estimate or to add a random variation. Default: True
                            
@@ -28,23 +28,20 @@ def impact_functions_random(file, category, error=True):
 
                              """
 
-    data = file[['T', 'best estimate']]  # get best estimated from the csv files
+    data = file[['T', 'best_estimate']]  # get best estimated from the csv files
     #data = data.dropna()  # get rid of missing values
     xdata = data['T']
 
     if error:
-        if category == 'under75':
-            mult = truncated_normal(1, 0.3, 0.2, 1.8)
-        else:
-            mult = truncated_normal(1, 0.3, 0.2, 1.8)
+        mult = truncated_normal(1, 0.3, 0.2, 1.8)
     else:
         mult = 1
 
-    ydata = data['best estimate'] * mult  # multiply the points by the random factor
+    ydata = data['best_estimate'] * mult  # multiply the points by the random factor
 
     # set RR=1 up to T=22°C:
-    ydata = np.append(ydata, [1, 1, 1])
-    xdata = np.append(xdata, [20, 21, 22])
+    #ydata = np.append(ydata, [1, 1, 1])
+    #xdata = np.append(xdata, [20, 21, 22])
 
     #p0 = [max(ydata), np.median(xdata), 1, min(ydata)]  # this is an mandatory initial guess to fit the curve
 
@@ -65,7 +62,7 @@ def call_impact_functions(with_without_error):
 
                               """
 
-    # get the data from the studies:
+    # get the data from the Excel files:
     directory_if = '../../input_data/impact_functions/'
 
     file_under75 = pd.read_csv(''.join([directory_if, 'impact_under75.csv']))
@@ -86,18 +83,18 @@ def call_impact_functions(with_without_error):
     if_heat1.intensity_unit = 'Degrees C'
     if_heat1.intensity = x
     if_heat1.mdd = (polynomial(x, *function_under75))
-    if_heat1.mdd[if_heat1.mdd < 0] = 0  # to avoid having negative values
+    #if_heat1.mdd[if_heat1.mdd < 1] = 1  # to avoid having values under RR=1
     if_heat1.paa = np.linspace(1, 1, num=30)
     if_heat_set.append(if_heat1)
 
     if_heat2 = ImpactFunc()
     if_heat2.haz_type = 'heat'
     if_heat2.id = 2
-    if_heat2.name = 'OVer 75 years'
+    if_heat2.name = 'Over 75 years'
     if_heat2.intensity_unit = 'Degrees C'
     if_heat2.intensity = x
     if_heat2.mdd = (polynomial(x, *function_over75))
-    if_heat2.mdd[if_heat2.mdd < 0] = 0
+    #if_heat2.mdd[if_heat2.mdd < 1] = 1
     if_heat2.paa = np.linspace(1, 1, num=30)
     if_heat_set.append(if_heat2)
 
