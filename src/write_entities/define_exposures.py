@@ -3,7 +3,10 @@ import pandas as pd
 from pandas import DataFrame
 
 from climada.entity import Exposures
-#from shapefile_masks import vector_shapefile_mask
+
+import sys
+sys.path.append('../../src/util/')
+from shapefile_masks import vector_shapefile_mask
 
 
 # In[ ]:

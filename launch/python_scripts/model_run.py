@@ -1,8 +1,5 @@
-import numpy as np
-from scipy import sparse
 import pickle
 from ast import literal_eval
-import ast
 import sys
 
 # append the pathways to all modules used in the model
@@ -34,17 +31,9 @@ years_list = [2050]
 # get fifth input, the scenarios for which to compute the impact
 scenarios = ['RCP45'] #On the computer: CH2018 data only for the RCP4.5 scenario !!
 
-# check if any branches where given, or if the impact for all categories should be computed
-branch = None
-branches_str = 'all_branches'
-
-# set default for adaptation measures:
-adaptation_str = ''
-working_hours = [8, 12, 13, 17]
-efficient_buildings = False
-sun_protection = False
-
-# check if any adaptation measures where given:
+# check if any age groups were given, or if the impact for all categories should be computed
+age_group = None
+groups_str = 'all_age_groups'
 
 # determine if the median damage matrix should be saved as output
 save_median_mat = True
@@ -68,14 +57,13 @@ for kanton in kantons:  # loop through given kantons, one file per element in th
 
     IMPACT = impact_monte_carlo(directory_hazard, scenarios, years_list, n_mc,
                                 uncertainty_variables_list=uncertainty_variables_list, kanton=kanton,
-                                branch=branch, working_hours=working_hours, sun_protection=sun_protection,
-                                efficient_buildings=efficient_buildings, save_median_mat=save_median_mat)
+                                age_group=age_group, save_median_mat=save_median_mat)
 
-    with open(''.join([directory_output, 'loss_', branches_str, '_', str(n_mc), 'mc_',
-                       uncertainty, '_', adaptation_str, kanton_name, '.pickle']), 'wb') as handle:
+    with open(''.join([directory_output, 'loss_', groups_str, '_', str(n_mc), 'mc_',
+                       uncertainty, '_', kanton_name, '.pickle']), 'wb') as handle:
         pickle.dump(IMPACT[0], handle, protocol=pickle.HIGHEST_PROTOCOL)
     if save_median_mat:
         with open(''.join([directory_output, 'matrix_',
-                           branches_str, '_', str(n_mc), 'mc_', uncertainty, '_', adaptation_str, kanton_name,
+                           groups_str, '_', str(n_mc), 'mc_', uncertainty, '_', kanton_name,
                            '.pickle']) , 'wb') as handle:
             pickle.dump(IMPACT[1], handle, protocol=pickle.HIGHEST_PROTOCOL)

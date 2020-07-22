@@ -81,6 +81,7 @@ def call_hazard(directory_hazard, scenario, year, uncertainty_variable='all', ka
     events = [range(len(temp))]  # number of each event
     event_dates = [dates]
     temp_data = [temp]
+    hazard_types =['heat']
 
     hazards = {}
 
@@ -99,6 +100,7 @@ def call_hazard(directory_hazard, scenario, year, uncertainty_variable='all', ka
         heat.fraction = heat.intensity.copy()
         heat.fraction.data.fill(1)
         heat.date = event_dates[w_]
+        hazards[hazard_types[w_]] = heat
         heat.check()
 
     tasmax.close()
