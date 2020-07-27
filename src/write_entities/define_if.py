@@ -10,11 +10,6 @@ def polynomial(x, a, b, c, d):
     return y
 
 
-# define a truncated normal distribution, to not have extreme outliers
-def truncated_normal(mean, stddev, minval, maxval):
-    return np.clip(np.random.normal(mean, stddev), minval, maxval)
-
-
 # function to get a random impact function:
 def impact_functions_random(file, category, error=True):
     """get curve for the impact function:
@@ -28,24 +23,19 @@ def impact_functions_random(file, category, error=True):
 
                              """
 
-    data = file[['T', 'best_estimate']]  # get best estimated from the csv files
+    data = file[['T', 'best_estimate', '95CI_low', '95CI_high']]  # get best estimated from the csv files
     #data = data.dropna()  # get rid of missing values
     xdata = data['T']
 
     if error:
-        mult = truncated_normal(1, 0.3, 0.2, 1.8)
+        ydata = np.random.uniform(low=data['95CI_low'], high=data['95CI_high'])
+        
     else:
-        mult = 1
+        ydata = data['best_estimate']
 
-    ydata = data['best_estimate'] * mult  # multiply the points by the random factor
+    p0 = [max(ydata), np.median(xdata), 1, min(ydata)]  # this is an mandatory initial guess to fit the curve
 
-    # set RR=1 up to T=22°C:
-    #ydata = np.append(ydata, [1, 1, 1])
-    #xdata = np.append(xdata, [20, 21, 22])
-
-    #p0 = [max(ydata), np.median(xdata), 1, min(ydata)]  # this is an mandatory initial guess to fit the curve
-
-    fit, pcov = curve_fit(polynomial, xdata, ydata)  # get curve
+    fit, pcov = curve_fit(polynomial, xdata, ydata, p0, method='dogbox')  # get curve
     return fit
 
 
@@ -83,7 +73,7 @@ def call_impact_functions(with_without_error):
     if_heat1.intensity_unit = 'Degrees C'
     if_heat1.intensity = x
     if_heat1.mdd = (polynomial(x, *function_under75))
-    #if_heat1.mdd[if_heat1.mdd < 1] = 1  # to avoid having values under RR=1
+    if_heat1.mdd[if_heat1.mdd < 1] = 1  # to avoid having values under RR=1
     if_heat1.paa = np.linspace(1, 1, num=30)
     if_heat_set.append(if_heat1)
 
@@ -94,7 +84,7 @@ def call_impact_functions(with_without_error):
     if_heat2.intensity_unit = 'Degrees C'
     if_heat2.intensity = x
     if_heat2.mdd = (polynomial(x, *function_over75))
-    #if_heat2.mdd[if_heat2.mdd < 1] = 1
+    if_heat2.mdd[if_heat2.mdd < 1] = 1
     if_heat2.paa = np.linspace(1, 1, num=30)
     if_heat_set.append(if_heat2)
 
