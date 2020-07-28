@@ -55,12 +55,12 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
         if category == 'U':
             exposures_name.add('Under 75 years')
             age_type['Under 75 years'] = U
-            if_ref['Under 75 years'] = 0
+            if_ref['Under 75 years'] = 1
 
         if category == 'O':
             exposures_name.add('Over 75 years')
             age_type['Over 75 years'] = O
-            if_ref['Over 75 years'] = 1
+            if_ref['Over 75 years'] = 2
 
     for name in exposures_name:
 

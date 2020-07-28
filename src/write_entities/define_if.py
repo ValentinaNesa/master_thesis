@@ -29,7 +29,8 @@ def impact_functions_random(file, category, error=True):
 
     if error:
         ydata = np.random.uniform(low=data['95CI_low'], high=data['95CI_high'])
-        
+        #ydata = np.clip(np.random.normal(loc=data['best_estimate'], scale=1), data['95CI_low'], data['95CI_high'])
+    
     else:
         ydata = data['best_estimate']
 
