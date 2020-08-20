@@ -21,8 +21,7 @@ def call_hazard(directory_hazard, scenario, year, uncertainty_variable='all', ka
     """Compute heat hazard for the CH2018 data, considered as any day where the T_max is higher than 22 degrees celsius
 
             Parameters:
-                directory_hazard (str): directory to a folder containing one tasmax (and one tasmin) folder with all the
-                                        data files
+                directory_hazard (str): directory to a folder containing one tasmax folder with all the data files
                 scenario (str): scenario for which to compute the hazards
                 year(str): year for which to compute the hazards
                 uncertainty_variable (str): variable for which to consider the uncertainty. Default: 'all'

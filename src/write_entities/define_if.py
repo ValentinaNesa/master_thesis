@@ -3,11 +3,13 @@ import pandas as pd
 from scipy.optimize import curve_fit
 from climada.entity import ImpactFunc, ImpactFuncSet
 
+# define a truncated normal distribution, to not have extreme outliers
+def truncated_normal(mean, stddev, minval, maxval):
+    return np.clip(np.random.normal(mean, stddev), minval, maxval) 
 
 #  define the function to fit the points:
 def polynomial(x, a, b, c, d):
-    y = a*x**3 + b*x**2 + c*x + d 
-    return y
+    return a*x**3 + b*x**2 + c*x + d
 
 
 # function to get a random impact function:
@@ -28,11 +30,16 @@ def impact_functions_random(file, category, error=True):
     xdata = data['T']
 
     if error:
-        ydata = np.random.uniform(low=data['95CI_low'], high=data['95CI_high'])
+        #ydata = np.random.uniform(low=data['95CI_low'], high=data['95CI_high'])
         #ydata = np.clip(np.random.normal(loc=data['best_estimate'], scale=1), data['95CI_low'], data['95CI_high'])
+        ydata = truncated_normal(data['best_estimate'], (data['95CI_high']-data['95CI_low']/3.92), data['95CI_low'], data['95CI_high'])
     
     else:
         ydata = data['best_estimate']
+        
+    # set RR=1 up to T=22°C:
+    ydata = np.append(ydata, [1, 1])
+    xdata = np.append(xdata, [21, 22])
 
     p0 = [max(ydata), np.median(xdata), 1, min(ydata)]  # this is an mandatory initial guess to fit the curve
 
@@ -43,7 +50,7 @@ def impact_functions_random(file, category, error=True):
 # In[8]:
 
 
-def call_impact_functions(with_without_error):
+def call_impact_functions(with_without_error=True):
     """get curve for the impact function:
 
                         Parameters:

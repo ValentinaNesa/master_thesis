@@ -33,6 +33,10 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
     # file containing the geographical location of the population by age group
     
     epsg_data = 2056  # espg of the population_loc data
+    
+    # get tot. population (CH)
+    pop_hectare = population_loc[8:].sum(axis=1) # to sum over the columns
+    pop_tot = pop_hectare.sum(axis=0) # to sum over the rows
 
     # get subset of the population data for each category
     # Under 75 years:
@@ -43,7 +47,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
     if age_group is None:
         groups = list(population_loc)[8:]  # take all age_groups
     else:
-        groups = age_group  # take only the given age_groups
+        groups = age_group # take only the given age_groups
 
     age_type = {}
     if_ref = {}
@@ -76,7 +80,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
         population_sum_intensity['longitude'] = np.asarray(population_loc_intensity['E_KOORD']).flatten()
         population_sum_intensity['latitude'] = np.asarray(population_loc_intensity['N_KOORD']).flatten()
         population_sum_intensity['value'] = np.asarray(
-            population_loc_intensity[population_loc_intensity.columns[2:]].sum(axis=1)) # to sum over the rows
+            population_loc_intensity[population_loc_intensity.columns[2:]].sum(axis=1)/pop_tot) # to sum over the columns
         n_exp = len(population_sum_intensity['value'])
 
         if kanton:  # test if a canton was specified, in that case
@@ -86,6 +90,8 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
 
             population_sum_intensity = vector_shapefile_mask(population_sum_intensity, shp_dir, kanton, epsg_data,
                                                           epsg_output)
+            
+            population_sum_intensity['value'] = population_sum_intensity['value']/sum(population_sum_intensity['value'])
 
             population_sum_intensity = Exposures(population_sum_intensity)  # define as Exposure class
             population_sum_intensity.set_lat_lon()
