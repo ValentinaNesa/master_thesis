@@ -187,27 +187,30 @@ def exp_impact_mortality(impact, exp_iimp, exposures, hazard, imp_fun, insure_fl
     # print('fract', fract)
     # print('exposures.value.values[exp_iimp]', exposures.value.values[exp_iimp])
     
-    impact = fract.multiply(inten_val).multiply(exposures.value.values[exp_iimp])
-    # impact = impact_mortality(impact)
+    matrix = fract.multiply(inten_val).multiply(exposures.value.values[exp_iimp])
+    # matrix = impact_mortality(impact)
     
-    if insure_flag and impact.nonzero()[0].size:
+    if insure_flag and matrix.nonzero()[0].size:
         inten_val = hazard.intensity[:, icens].todense()
         paa = np.interp(inten_val, imp_fun.intensity, imp_fun.paa)
-        impact = np.minimum(np.maximum(impact - \
+        matrix = np.minimum(np.maximum(matrix - \
             exposures.deductible.values[exp_iimp] * paa, 0), \
             exposures.cover.values[exp_iimp])
-        impact.eai_exp[exp_iimp] += np.sum(np.asarray(impact) * \
+        impact.eai_exp[exp_iimp] += np.sum(np.asarray(matrix) * \
             hazard.frequency.reshape(-1, 1), axis=0)
     else:
         impact.eai_exp[exp_iimp] += np.squeeze(np.asarray(np.sum( \
-            impact.multiply(hazard.frequency.reshape(-1, 1)), axis=0)))
+            matrix.multiply(hazard.frequency.reshape(-1, 1)), axis=0)))
     
-    impact.at_event += np.squeeze(np.asarray(np.sum(impact, axis=1)))
+    impact.at_event += np.squeeze(np.asarray(np.sum(matrix, axis=1)))
     impact.tot_value += np.sum(exposures.value.values[exp_iimp])
     if not isinstance(impact.imp_mat, list):
-        impact.imp_mat[:, exp_iimp] = impact
+        impact.imp_mat[:, exp_iimp] = matrix
         
 ###############################################################################
 
-#def impact_mortality(impact):
-#    return impact
+# def impact_mortality(impact):
+#     print('IMPACT')
+#     print(type(impact))
+#     print(impact)
+#     return matrix

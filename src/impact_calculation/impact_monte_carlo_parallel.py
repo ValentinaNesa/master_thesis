@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-#from calculate_impact_mortality import calculate_impact_mortality
+from calculate_impact_mortality import calculate_impact_mortality
 from calculate_impact import calculate_impact
 from define_exposures import call_exposures
 from multiprocessing import cpu_count
@@ -61,12 +61,18 @@ def impact_monte_carlo(directory_hazard, scenarios, years_list, n_mc, uncertaint
                 ncores_max = cpu_count()  # get the number of cores available
 
                 # backend = 'multiprocessing' to show printing
-                impact = Parallel(n_jobs=ncores_max)(delayed(calculate_impact)(directory_hazard,
-                                                                               scenario, year, exposures,
-                                                                               uncertainty_variable=uncertainty_variable,
-                                                                               kanton=kanton,
-                                                                               save_median_mat=save_median_mat)
-                                                     for i in range(0, n_mc))  # calculate the impact on different cores
+                impact = Parallel(n_jobs=ncores_max)(delayed(calculate_impact_mortality)(directory_hazard,
+                                                                                scenario, year, exposures,
+                                                                                uncertainty_variable=uncertainty_variable,
+                                                                                kanton=kanton,
+                                                                                save_median_mat=save_median_mat)
+                                                      for i in range(0, n_mc))  # calculate the impact on different cores
+                
+                # for i in range(0, n_mc):
+                #     impact = calculate_impact(directory_hazard,
+                #                               scenario, year, exposures,
+                #                               uncertainty_variable=uncertainty_variable,
+                #                               kanton=kanton, save_median_mat=save_median_mat)
                 ########################################################################################
 
                 impact_year[str(year)] = pd.DataFrame()  # panda dataframe of the impacts for the different exposures
