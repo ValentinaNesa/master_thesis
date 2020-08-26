@@ -20,7 +20,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
                         epsg_output (int): EPSG code of the output. Default: 4326.
 
                     Returns:
-                        Dictionary containing one Exposure per age category
+                        Dictionary containing one Exposure per age category (share of pop. per hectare instead of the number of people)
                           """
 
     directory = '../../input_data/exposures/'
@@ -34,9 +34,25 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
     
     epsg_data = 2056  # espg of the population_loc data
     
-    # get tot. population (CH)
-    pop_hectare = population_loc[8:].sum(axis=1) # to sum over the columns
-    pop_tot = pop_hectare.sum(axis=0) # to sum over the rows
+    # get tot. population (CH/Canton)
+    pop_hectare_ch = population_loc[8:].sum(axis=1) # to sum over the columns
+    pop_tot_ch = pop_hectare_ch.sum(axis=0) # to sum over the rows
+    
+    if kanton:
+        shp_dir = '../../input_data/shapefiles/KANTONS_projected_epsg4326/' \
+                      'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET_epsg4326.shp'
+        
+        population_loc['longitude'] = np.asarray(population_loc['E_KOORD']).flatten()
+        population_loc['latitude'] = np.asarray(population_loc['N_KOORD']).flatten()
+        population_loc['value'] = np.asarray(population_loc[population_loc.columns[8:]].sum(axis=1))
+        population_loc_canton = vector_shapefile_mask(population_loc, shp_dir, kanton, epsg_data,
+                                                          epsg_output)
+        
+        population_loc = population_loc.drop(['longitude', 'latitude', 'value'], axis=1)
+        
+        # pop_hectare_canton = population_loc_canton[8:].sum(axis=1)
+        # pop_tot_canton = pop_hectare_canton.sum(axis=0)
+        pop_tot_canton = sum(population_loc_canton)
 
     # get subset of the population data for each category
     # Under 75 years:
@@ -80,7 +96,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
         population_sum_intensity['longitude'] = np.asarray(population_loc_intensity['E_KOORD']).flatten()
         population_sum_intensity['latitude'] = np.asarray(population_loc_intensity['N_KOORD']).flatten()
         population_sum_intensity['value'] = np.asarray(
-            population_loc_intensity[population_loc_intensity.columns[2:]].sum(axis=1)/pop_tot) # to sum over the columns
+            population_loc_intensity[population_loc_intensity.columns[2:]].sum(axis=1)/pop_tot_ch) # to sum over the columns
         n_exp = len(population_sum_intensity['value'])
 
         if kanton:  # test if a canton was specified, in that case
@@ -91,7 +107,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
             population_sum_intensity = vector_shapefile_mask(population_sum_intensity, shp_dir, kanton, epsg_data,
                                                           epsg_output)
             
-            population_sum_intensity['value'] = population_sum_intensity['value']/sum(population_sum_intensity['value'])
+            population_sum_intensity['value'] = population_sum_intensity['value']*pop_tot_ch/pop_tot_canton
 
             population_sum_intensity = Exposures(population_sum_intensity)  # define as Exposure class
             population_sum_intensity.set_lat_lon()

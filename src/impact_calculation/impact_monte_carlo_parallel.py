@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
+#from calculate_impact_mortality import calculate_impact_mortality
 from calculate_impact import calculate_impact
 from define_exposures import call_exposures
 from multiprocessing import cpu_count
@@ -26,7 +27,9 @@ def impact_monte_carlo(directory_hazard, scenarios, years_list, n_mc, uncertaint
                       """
 
     # the exposures are called outside the loop as their is no uncertainty in this entitiy.
+    print('\n Starting Exposures generator \n')
     exposures = call_exposures(kanton=kanton, age_group=age_group)
+    print('\n Ended Exposures generator \n')
 
     if uncertainty_variables_list != ['all']:
         impact_uncertainty_variable = {}  # initiate dictionary for the uncertainty variables, if not 'all'
@@ -57,6 +60,7 @@ def impact_monte_carlo(directory_hazard, scenarios, years_list, n_mc, uncertaint
 
                 ncores_max = cpu_count()  # get the number of cores available
 
+                # backend = 'multiprocessing' to show printing
                 impact = Parallel(n_jobs=ncores_max)(delayed(calculate_impact)(directory_hazard,
                                                                                scenario, year, exposures,
                                                                                uncertainty_variable=uncertainty_variable,
