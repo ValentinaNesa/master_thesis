@@ -30,7 +30,7 @@ def call_hazard(directory_hazard, scenario, year, uncertainty_variable='all', ka
             Returns:
                 hazards(dict): dictionary containing the hazard heat
                   """
-
+    random.seed(0) # todo: remove this at a certain point
     if uncertainty_variable == 'all' or uncertainty_variable == 'years':
         ny = random.randint(-3, 3)  # to be added to the year, so that any year in the +5 to -5 range can be picked
     else:  # if we are testing the sensitivity to the change in variables, we always want to be taking
@@ -54,8 +54,8 @@ def call_hazard(directory_hazard, scenario, year, uncertainty_variable='all', ka
 
     # replace all values where the maximum
     # temperature does not reach 22 degrees by nas in TASMAX and drop time steps that only have NAs
-    # for the entire area:
-    tasmax = tasmax.where(tasmax['tasmax'] > 22).dropna(dim='time', how='all')
+    # for the entire area: (21.5 because of rounding that happens later)
+    tasmax = tasmax.where(tasmax['tasmax'] > 21.5).dropna(dim='time', how='all')
 
     nlats = len(tasmax.lat)  # number of latitudes
     nlons = len(tasmax.lon)  # number of longitudes
