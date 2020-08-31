@@ -142,6 +142,7 @@ dmypy.json
 .DS_Store
 climada_library/
 data_analysis/figures/
+input_data/hazard/
 output/impact_adaptation/*
 !output/impact_adaptation/placeholder.txt
 output/impact_sensitivity/*
@@ -154,7 +155,6 @@ report/
 research/figures
 
 # ToDo: remove this before final commit
-input_data/hazard/
-input_data/exposures/
-input_data/impact_functions/
-research/data
+# input_data/exposures/
+# input_data/impact_functions/
+# research/data

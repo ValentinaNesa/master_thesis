@@ -16,27 +16,38 @@ def convert(string):  # function that converts 'lists' from the bash input (stri
 
 
 directory_output = '../../output/impact_ch/'  # where to save to output
-directory_hazard = '../../input_data/hazard/CH2018'  # first input from the bash script, which is the directory to the temperature files.
+directory_hazard = sys.argv[1]  # first input from the bash script, which is the directory to the temperature files.
 
-n_mc = literal_eval('1')  # number of Monte Carlo runs
+n_mc = literal_eval(sys.argv[2])  # number of Monte Carlo runs
 
 # check the third input, which determines if the input should be calculated for Switzerland,
 # all cantons indepentently or for one specific canton:
-kantons = [None] # the None is put into a list, as we further loop through the cantons given
-#directory_output = '../../output/impact_cantons/' # if only some specific cantons are considered
+if sys.argv[3] == 'CH':
+    kantons = [None] # the None is put into a list, as we further loop through the cantons given
+else:
+    kantons = convert(sys.argv[3])
+    directory_output = '../../output/impact_cantons/' # in case a canton is given, the output is saved  
+    # in the folder impact_cantons.
 
 # get fourth input, the years for which to compute the impact
-years_list = [2050]
+years_list = [int(i) for i in convert(sys.argv[4])]
 
 # get fifth input, the scenarios for which to compute the impact
-scenarios = ['RCP45'] #On the computer: CH2018 data only for the RCP4.5 scenario !!
+scenarios = [convert(sys.argv[5])] #On the computer: CH2018 data only for the RCP4.5 scenario !!
 
-# check if any age groups were given, or if the impact for all categories should be computed
-age_group = None
-groups_str = 'all_age_groups'
+# check if any age groups were given, or if the impact for all age groups should be computed
+if sys.argv[6] == '0':
+    age_group = None
+    groups_str = 'all_age_groups'
+else:
+    age_group = convert(sys.argv[6])
+    groups_str = "_".join(age_group) # string to name the file later on
 
 # determine if the median damage matrix should be saved as output
-save_median_mat = False
+if sys.argv[7] == '0':
+    save_median_mat = False
+else:
+    save_median_mat = True
 
 # in this base model run, all uncertainties are taken into account.
 # This is not the case in the sensibility testing code where all are taken one by one.
