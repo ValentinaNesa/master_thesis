@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from climada.engine import Impact
 from scipy.sparse import csr_matrix
 
@@ -42,11 +43,11 @@ def calculate_impact_mortality(directory_hazard, scenario, year, exposures, unce
 
     error = uncertainty_variable == 'impactfunction' or uncertainty_variable == 'all'  # this sentence evaluates to the correct boolean
     if_hw_set = call_impact_functions(error)
-
+    
     for key, grid in exposures.items():  # calculate impact for each type of exposure
         impact = Impact()
         
-        calc_mortality(impact, grid, if_hw_set, hazard['heat'], save_mat=save_median_mat)
+        calc_mortality(impact, key, grid, if_hw_set, hazard['heat'], kanton=kanton, save_mat=save_median_mat)
 
         impact_dict[key] = np.sum(impact.at_event)
 
@@ -68,14 +69,16 @@ def calculate_impact_mortality(directory_hazard, scenario, year, exposures, unce
 
 # modify Impact object
 
-def calc_mortality(impact, exposures, impact_funcs, hazard, save_mat=False):
+def calc_mortality(impact, key, exposures, impact_funcs, hazard, kanton, save_mat=False):
     """Compute impact of an hazard to exposures.
 
     Parameters:
         impact (Impact): impact, object to be modified
+        key (str): exposures names
         exposures (Exposures): exposures
         impact_funcs (ImpactFuncSet): impact functions
         hazard (Hazard): hazard
+        kanton (str or None): Name of canton. Default: None (all of Switzerland)
         self_mat (bool): self impact matrix: events x exposures
     """
     # 1. Assign centroids to each exposure if not done
@@ -145,9 +148,9 @@ def calc_mortality(impact, exposures, impact_funcs, hazard, save_mat=False):
         for chk in range(int(exp_iimp.size / exp_step)):
             exp_impact_mortality(impact, \
                                  exp_idx[exp_iimp[chk * exp_step:(chk + 1) * exp_step]], \
-                                 exposures, hazard, imp_fun, insure_flag)
+                                 exposures, key, hazard, imp_fun, insure_flag, kanton)
         exp_impact_mortality(impact, exp_idx[exp_iimp[(chk + 1) * exp_step:]], \
-                             exposures, hazard, imp_fun, insure_flag)
+                             exposures, key, hazard, imp_fun, insure_flag, kanton)
 
     if not tot_exp:
         LOGGER.warning('No impact functions match the exposures.')
@@ -159,20 +162,27 @@ def calc_mortality(impact, exposures, impact_funcs, hazard, save_mat=False):
 
 ###############################################################################
 
-def exp_impact_mortality(impact, exp_iimp, exposures, hazard, imp_fun, insure_flag):
+def exp_impact_mortality(impact, exp_iimp, exposures, key, hazard, imp_fun, insure_flag, kanton):
     """Compute impact for inpute exposure indexes and impact function.
     
     Parameters:
         impact (Impact): impact, object to be modified
         exp_iimp (np.array): exposures indexes
         exposures (Exposures): exposures instance
+        key (str): exposures names
         hazard (Hazard): hazard instance
         imp_fun (ImpactFunc): impact function instance
         insure_flag (bool): consider deductible and cover of exposures
+        kanton (str or None): Name of canton. Default: None (all of Switzerland)
     """
     if not exp_iimp.size:
         return   
-
+    
+    directory = '../../input_data/impact_functions/'
+    
+    annual_deaths = pd.read_excel(''.join([directory, 'annual_deaths.xlsx']), sheet_name = key)
+    # file containing the number of annual deaths per CH / Canton for each age category
+    
     # PREPROCESSING STEP:
         
     # get assigned centroids
@@ -185,10 +195,10 @@ def exp_impact_mortality(impact, exp_iimp, exposures, hazard, imp_fun, insure_fl
     exposure_values = exposures.value.values[exp_iimp] 
 
     expected_deaths = {}
-    DAILY_DEATHS = 30 # todo: this needs to change depending on the size of the input (i.e. Switzerland vs. single cantons)
+    daily_deaths = annual_deaths[annual_deaths['Canton'] == kanton]['Annual_deaths'].values[0] / 365
     max_temp =  temperature_matrix.max()
     for value in range(22, int(np.ceil(max_temp)) + 1):
-        expected_deaths[value] = DAILY_DEATHS / imp_fun.calc_mdr(value)
+        expected_deaths[value] = daily_deaths / imp_fun.calc_mdr(value)
     #print(expected_deaths)
 
     # Compute impact matrix
@@ -202,7 +212,6 @@ def exp_impact_mortality(impact, exp_iimp, exposures, hazard, imp_fun, insure_fl
                             exposures.cover.values[exp_iimp])
         impact.eai_exp[exp_iimp] += np.sum(np.asarray(matrix) * \
                                            hazard.frequency.reshape(-1, 1), axis=0)
-        print('GOT HERE')
     else:
         impact.eai_exp[exp_iimp] += np.squeeze(np.asarray(np.sum( \
             matrix.multiply(hazard.frequency.reshape(-1, 1)), axis=0)))
@@ -244,7 +253,7 @@ def impact_mortality(temperature_matrix, exposure_values, indices_of_centroids, 
         average_deaths = 0
         for key in histogram.keys():
             average_deaths += expected_deaths[key] * exposure_values[cell]
-        # print(average_deaths)
+        #print(average_deaths)
 
         # 3: Attributable Fraction:
         for key in histogram.keys():
@@ -257,7 +266,7 @@ def impact_mortality(temperature_matrix, exposure_values, indices_of_centroids, 
             days_amount = histogram[key][temperature_occurrence_index]
             attributable_fraction = histogram[key][attributable_fraction_index]
             total_attributable_deaths += days_amount * attributable_fraction * average_deaths
-        # print(total_attributable_deaths)
+        #print(total_attributable_deaths)
 
         # Store the proper information in the first day only (since we already aggregated per each day)
         mat[0, cell] = total_attributable_deaths

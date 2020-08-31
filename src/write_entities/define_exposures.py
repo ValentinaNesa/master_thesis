@@ -43,7 +43,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
         shp_dir = '../../input_data/shapefiles/KANTONS_projected_epsg4326/' \
                       'swissBOUNDARIES3D_1_3_TLM_KANTONSGEBIET_epsg4326.shp'
         
-        pop_loc_ch = population_loc
+        pop_loc_ch = population_loc.copy()
         pop_loc_ch['longitude'] = np.asarray(pop_loc_ch['E_KOORD']).flatten()
         pop_loc_ch['latitude'] = np.asarray(pop_loc_ch['N_KOORD']).flatten()
         pop_loc_canton = vector_shapefile_mask(pop_loc_ch, shp_dir, kanton, epsg_data,
@@ -55,7 +55,7 @@ def call_exposures(kanton=None, age_group=None, epsg_output=4326):
         
         #print(pop_tot_canton)
         #print(pop_tot_ch)
-
+        
     # get subset of the population data for each category
     # Under 75 years:
     U = population_info.loc[population_info['Age_category'] == 'U']

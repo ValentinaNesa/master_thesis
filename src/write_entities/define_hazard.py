@@ -30,7 +30,6 @@ def call_hazard(directory_hazard, scenario, year, uncertainty_variable='all', ka
             Returns:
                 hazards(dict): dictionary containing the hazard heat
                   """
-    random.seed(0) # todo: remove this at a certain point
     if uncertainty_variable == 'all' or uncertainty_variable == 'years':
         ny = random.randint(-3, 3)  # to be added to the year, so that any year in the +5 to -5 range can be picked
     else:  # if we are testing the sensitivity to the change in variables, we always want to be taking

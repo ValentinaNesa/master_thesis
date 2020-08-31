@@ -65,12 +65,6 @@ def impact_monte_carlo(directory_hazard, scenarios, years_list, n_mc, uncertaint
                                                                                 kanton=kanton,
                                                                                 save_median_mat=save_median_mat)
                                                       for i in range(0, n_mc))  # calculate the impact on different cores
-                
-                # for i in range(0, n_mc):
-                #     impact = calculate_impact_mortality(directory_hazard,
-                #                               scenario, year, exposures,
-                #                               uncertainty_variable=uncertainty_variable,
-                #                               kanton=kanton, save_median_mat=save_median_mat)
                 ########################################################################################
 
                 impact_year[str(year)] = pd.DataFrame()  # panda dataframe of the impacts for the different exposures
