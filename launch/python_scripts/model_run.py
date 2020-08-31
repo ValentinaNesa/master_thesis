@@ -22,8 +22,8 @@ n_mc = literal_eval('1')  # number of Monte Carlo runs
 
 # check the third input, which determines if the input should be calculated for Switzerland,
 # all cantons indepentently or for one specific canton:
-kantons = ['Zürich']
-directory_output = '../../output/impact_cantons/'
+kantons = [None] # the None is put into a list, as we further loop through the cantons given
+#directory_output = '../../output/impact_cantons/' # if only some specific cantons are considered
 
 # get fourth input, the years for which to compute the impact
 years_list = [2050]

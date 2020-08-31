@@ -178,6 +178,11 @@ def exp_impact_mortality(impact, exp_iimp, exposures, key, hazard, imp_fun, insu
     if not exp_iimp.size:
         return   
     
+    if kanton is None:
+        kanton_name = 'CH'
+    else:
+        kanton_name = kanton
+    
     directory = '../../input_data/impact_functions/'
     
     annual_deaths = pd.read_excel(''.join([directory, 'annual_deaths.xlsx']), sheet_name = key)
@@ -195,7 +200,7 @@ def exp_impact_mortality(impact, exp_iimp, exposures, key, hazard, imp_fun, insu
     exposure_values = exposures.value.values[exp_iimp] 
 
     expected_deaths = {}
-    daily_deaths = annual_deaths[annual_deaths['Canton'] == kanton]['Annual_deaths'].values[0] / 365
+    daily_deaths = annual_deaths[annual_deaths['Canton'] == kanton_name]['Annual_deaths'].values[0] / 365
     max_temp =  temperature_matrix.max()
     for value in range(22, int(np.ceil(max_temp)) + 1):
         expected_deaths[value] = daily_deaths / imp_fun.calc_mdr(value)
