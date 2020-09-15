@@ -141,4 +141,20 @@ dmypy.json
 # Additional gitignore
 .DS_Store
 climada_library/
-input_data/hazard/CH2018
+data_analysis/figures/
+input_data/hazard/
+output/impact_adaptation/*
+!output/impact_adaptation/placeholder.txt
+output/impact_sensitivity/*
+!output/impact_sensitivity/placeholder.txt
+output/impact_cantons/*
+!output/impact_cantons/placeholder.txt
+output/impact_ch/*
+!output/impact_ch/placeholder.txt
+report/
+research/figures
+
+# ToDo: remove this before final commit
+# input_data/exposures/
+# input_data/impact_functions/
+# research/data

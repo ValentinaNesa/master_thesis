@@ -1,21 +1,13 @@
 import numpy as np
-import math
-import pandas as pd
-from pandas import DataFrame
-import os
-from numpy.random import uniform
-import glob
-import sys
-from pathlib import Path
 from climada import hazard
 from climada.entity import exposures
-from climada.entity.impact_funcs import ImpactFunc, ImpactFuncSet
 from climada.engine import Impact
-
-from define_if import impact_functions_random, call_impact_functions
-from define_hazard import call_hazard
-import gc
 from scipy.sparse import csr_matrix
+
+import sys
+sys.path.append('../../src/write_entities/')
+from define_if import call_impact_functions
+from define_hazard import call_hazard
 
 
 # This function calls a random hazard and impact function and take the given exposures to calculate an impact. The
@@ -25,28 +17,18 @@ from scipy.sparse import csr_matrix
 
 
 def calculate_impact(directory_hazard, scenario, year, exposures, uncertainty_variable='all',
-                     working_hours=None, kanton=None, sun_protection=False, efficient_buildings=False,
-                         save_median_mat=False):
+                     kanton=None, age_group=None, save_median_mat=False):
     """compute the impacts once:
 
                 Parameters:
-                    directory_hazard (str): directory to a folder containing one tasmax and one tasmin folder with all the
+                    directory_hazard (str): directory to a folder containing one tasmax (and one tasmin) folder with all the
                                             data files
                     scenario (str): scenario for which to compute the hazards
                     year(str): year for which to compute the hazards
                     exposures(Exposures): the exposures which stay fixed for all runs
                     uncertainty_variable(str): variable for which to consider the uncertainty. Default: 'all'
                     kanton (str or None): Name of canton. Default: None (all of Switzerland)
-                    branch (str or None): specific economic branch, as given in the 'GIS_data_code' of the
-                                            work_intensity.csv file. Default: None
-                    sun_protection (bool): rather to consider the adaptation measure sun 'protection'. Default: False
-                    working_hours (list): hours where people are working. list with the first number being when they
-                            start in the day, the second when they start their midday break,
-                            third when they start in the afternoon and last when they finished in the evening
-                            Default:[8,12,13,17]
-                    efficient_buildings (bool): rather damage occurs only outside (buildings are well insulated from heat)
-                            Default: False
-
+                    age_group (str or None): specific age group, as given in the "GIS_Data_code" of the age_categories.csv file. Default: None
                     save_median_mat (bool): rather we save the impact matrix . Default = True
 
                 Returns:
@@ -61,8 +43,7 @@ def calculate_impact(directory_hazard, scenario, year, exposures, uncertainty_va
     else:
         save_mat = False
 
-    hazard = call_hazard(directory_hazard, scenario, year, uncertainty_variable=uncertainty_variable, kanton=kanton,
-                         working_hours=working_hours, sun_protection=sun_protection, only_outside=efficient_buildings)
+    hazard = call_hazard(directory_hazard, scenario, year, uncertainty_variable=uncertainty_variable, kanton=kanton)
     ####################################################################################################
 
     if uncertainty_variable == 'impactfunction' or uncertainty_variable == 'all':
@@ -74,10 +55,7 @@ def calculate_impact(directory_hazard, scenario, year, exposures, uncertainty_va
 
     for e_ in exposures:  # calculate impact for each type of exposure
         impact = Impact()
-        if (e_ == 'inside low physical activity') or (e_ == 'inside moderate physical activity'):
-            impact.calc(exposures[e_], if_hw_set, hazard['heat inside'], save_mat=save_mat)
-        elif (e_ == 'outside moderate physical activity') or (e_ == 'outside high physical activity'):
-            impact.calc(exposures[e_], if_hw_set, hazard['heat outside'], save_mat=save_mat)
+        impact.calc(exposures[e_], if_hw_set, hazard['heat'], save_mat=save_mat)
 
         impact_dict[e_] = np.sum(impact.at_event)
 
