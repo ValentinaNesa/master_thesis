@@ -33,7 +33,7 @@ else:
 years_list = [int(i) for i in convert(sys.argv[4])]
 
 # get fifth input, the scenarios for which to compute the impact
-scenarios = [convert(sys.argv[5])] #On the computer: CH2018 data only for the RCP4.5 scenario !!
+scenarios = convert(sys.argv[5])
 
 # check if any age groups were given, or if the impact for all age groups should be computed
 if sys.argv[6] == '0':
